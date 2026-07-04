@@ -192,7 +192,6 @@ function App() {
           <h1>Monthly Expense Tracker</h1>
           <p>
             A classroom-ready MERN application using React, Express, MongoDB, and Docker Compose.
-            The UI follows the purple, blue, and neon cyber style from your reference image.
           </p>
           <div className="hero-actions">
             <button onClick={seedDemoData} className="btn primary"><Sparkles size={18} /> Seed Demo Data</button>

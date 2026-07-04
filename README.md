@@ -1,4 +1,4 @@
-# AI Styled Expense Tracker — MERN + Docker Compose
+# Expense Tracker — MERN + Docker Compose
 
 A classroom-ready **Expense Tracker MERN app** built with:
 
