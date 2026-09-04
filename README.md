@@ -144,6 +144,39 @@ http://192.168.120.189:9155
 
 Replace the IP with the Docker host IP. The frontend proxies `/api` requests to the `backend` container over `exp-network`.
 
+### Connect Existing Containers to a Network
+
+If a container was created before `exp-network` existed, create the network and connect the existing container afterward:
+
+```bash
+docker network create exp-network
+docker network connect exp-network mongo
+docker network connect exp-network backend
+docker network connect exp-network frontend-main
+```
+
+The `docker network connect` command adds a running or stopped container to the network without recreating it. Connect every container that needs to communicate over `exp-network`. The frontend and backend must use the container name `backend`, because the NGINX proxy resolves that hostname on the Docker network.
+
+Inspect the network to verify that the containers were added:
+
+```bash
+docker network inspect exp-network
+```
+
+In the output, check the `Containers` object. It should list `mongo`, `backend`, and `frontend-main`, along with each container's ID, name, and network IP address. To check one container's connected networks, use:
+
+```bash
+docker inspect mongo
+docker inspect backend
+docker inspect frontend-main
+```
+
+If `exp-network` already exists, Docker reports that it exists; continue with `docker network connect` for any missing container. A container can also be disconnected with:
+
+```bash
+docker network disconnect exp-network CONTAINER_NAME
+```
+
 Useful Docker commands:
 
 ```bash
@@ -155,6 +188,34 @@ docker stop frontend-main backend mongo
 docker rm frontend-main backend mongo
 docker network rm exp-network
 ```
+
+### Monitor Application Health
+
+The frontend proxies `/api/health` to the backend. This command hides the JSON response and prints only the HTTP status:
+
+```bash
+curl -sS -w 'HTTP Status: %{http_code}\n' http://localhost:9155/api/health --output /dev/null
+```
+
+Expected output when the application is healthy:
+
+```text
+HTTP Status: 200
+```
+
+From another machine, replace `localhost` with the Docker host IP:
+
+```bash
+curl -sS -w 'HTTP Status: %{http_code}\n' http://192.168.120.189:9155/api/health --output /dev/null
+```
+
+For repeated monitoring from the Docker host:
+
+```bash
+while true; do date; curl -sS -w 'HTTP Status: %{http_code}\n' http://localhost:9155/api/health --output /dev/null; sleep 30; done
+```
+
+An HTTP `200` means the frontend proxy reached the backend successfully. A connection error or another status indicates that the frontend, backend, network, or MongoDB connection needs investigation. Stop the loop with `Ctrl+C`.
 
 ## API
 
